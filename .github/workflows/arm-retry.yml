@@ -1,0 +1,105 @@
+name: arm-retry
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: arm-retry
+  cancel-in-progress: false
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if VM already created
+        id: guard
+        run: |
+          if [ -f VM_CREATED.json ]; then
+            echo "done=true" >> "$GITHUB_OUTPUT"
+            echo "VM já criada anteriormente — nada a fazer."
+          else
+            echo "done=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install OCI CLI
+        if: steps.guard.outputs.done == 'false'
+        run: pip install oci-cli --quiet
+
+      - name: Attempt launch (cycles 4/24 -> 2/12 -> 1/6)
+        if: steps.guard.outputs.done == 'false'
+        id: launch
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_CLI_REGION: sa-saopaulo-1
+        run: |
+          set +e
+          AD="PuxO:SA-SAOPAULO-1-AD-1"
+          SUBNET="ocid1.subnet.oc1.sa-saopaulo-1.aaaaaaaa7hfoqh5p5jd4en3z3wagq4b2msbbtf3pwkdg4fm5seuefkux7jxa"
+          IMG="ocid1.image.oc1.sa-saopaulo-1.aaaaaaaaemf52b7af7ncncxz6pdc6hrlkdmylvwejfzpwnpbuhlfxwhrno6a"
+          CREATED=""
+          for cfg in "4 24" "2 12" "1 6"; do
+            set -- $cfg; O=$1; M=$2
+            echo "::group::tentando ${O} OCPU / ${M} GB"
+            OUT=$(oci compute instance launch \
+              --availability-domain "$AD" \
+              --compartment-id "$OCI_CLI_TENANCY" \
+              --shape VM.Standard.A1.Flex \
+              --shape-config "{\"ocpus\":$O,\"memoryInGBs\":$M}" \
+              --image-id "$IMG" \
+              --subnet-id "$SUBNET" \
+              --boot-volume-size-in-gbs 100 \
+              --display-name mailcow-ces \
+              --hostname-label mailcow-ces \
+              --assign-public-ip true \
+              --ssh-authorized-keys-file mailcow_ces.pub \
+              --query 'data.id' --raw-output 2>&1)
+            echo "$OUT"
+            echo "::endgroup::"
+            if echo "$OUT" | grep -q "Out of host capacity"; then
+              continue
+            fi
+            if echo "$OUT" | grep -qE "^ocid1\.instance\."; then
+              CREATED="$OUT"
+              break
+            fi
+            # outro erro inesperado: registra e tenta shape menor
+            echo "::warning::erro inesperado neste shape (ver acima)"
+          done
+          if [ -z "$CREATED" ]; then
+            echo "Sem capacity neste ciclo — próxima execução do cron tentará de novo."
+            echo "done=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "INSTÂNCIA CRIADA: $CREATED"
+          oci compute instance get --instance-id "$CREATED" --wait-for-state RUNNING --max-wait-seconds 600 >/dev/null 2>&1
+          IP=$(oci compute instance list-vnics --instance-id "$CREATED" --query 'data[0]."public-ip"' --raw-output 2>/dev/null)
+          PRIV=$(oci compute instance list-vnics --instance-id "$CREATED" --query 'data[0]."private-ip"' --raw-output 2>/dev/null)
+          printf '{"instance":"%s","public_ip":"%s","private_ip":"%s","created_at":"%s"}\n' "$CREATED" "$IP" "$PRIV" "$(date -u +%FT%TZ)" > VM_CREATED.json
+          cat VM_CREATED.json
+          echo "ip=$IP" >> "$GITHUB_OUTPUT"
+          echo "done=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit marker + open issue
+        if: steps.launch.outputs.done == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VM_CREATED.json
+          git commit -m "VM mailcow-ces criada (IP ${{ steps.launch.outputs.ip }})"
+          git push
+          gh issue create \
+            --title "VM mailcow-ces criada — IP ${{ steps.launch.outputs.ip }}" \
+            --body "A VM ARM nasceu em sa-saopaulo-1. IP publico: ${{ steps.launch.outputs.ip }}. Detalhes em VM_CREATED.json. Proximo passo: instalar Mailcow." || true
