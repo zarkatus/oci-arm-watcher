@@ -2,12 +2,15 @@ name: arm-retry
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'   # rede de segurança: 1x/hora reinicia se o job longo morreu
   workflow_dispatch:
+  push:
+    branches: [main]      # primeiro disparo ao subir esta versão
 
 permissions:
   contents: write
   issues: write
+  actions: write          # necessário para auto-redisparo
 
 concurrency:
   group: arm-retry
@@ -16,6 +19,7 @@ concurrency:
 jobs:
   launch:
     runs-on: ubuntu-latest
+    timeout-minutes: 350   # < limite de 6h do GitHub
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +37,7 @@ jobs:
         if: steps.guard.outputs.done == 'false'
         run: pip install oci-cli --quiet
 
-      - name: Attempt launch (cycles 4/24 -> 2/12 -> 1/6)
+      - name: Long retry loop (cycles 4/24 -> 2/12 -> 1/6 até ~5h40m)
         if: steps.guard.outputs.done == 'false'
         id: launch
         env:
@@ -47,37 +51,41 @@ jobs:
           AD="PuxO:SA-SAOPAULO-1-AD-1"
           SUBNET="ocid1.subnet.oc1.sa-saopaulo-1.aaaaaaaa7hfoqh5p5jd4en3z3wagq4b2msbbtf3pwkdg4fm5seuefkux7jxa"
           IMG="ocid1.image.oc1.sa-saopaulo-1.aaaaaaaaemf52b7af7ncncxz6pdc6hrlkdmylvwejfzpwnpbuhlfxwhrno6a"
+          DEADLINE=$(( $(date +%s) + 20400 ))   # ~5h40m
           CREATED=""
-          for cfg in "4 24" "2 12" "1 6"; do
-            set -- $cfg; O=$1; M=$2
-            echo "::group::tentando ${O} OCPU / ${M} GB"
-            OUT=$(oci compute instance launch \
-              --availability-domain "$AD" \
-              --compartment-id "$OCI_CLI_TENANCY" \
-              --shape VM.Standard.A1.Flex \
-              --shape-config "{\"ocpus\":$O,\"memoryInGBs\":$M}" \
-              --image-id "$IMG" \
-              --subnet-id "$SUBNET" \
-              --boot-volume-size-in-gbs 100 \
-              --display-name mailcow-ces \
-              --hostname-label mailcow-ces \
-              --assign-public-ip true \
-              --ssh-authorized-keys-file mailcow_ces.pub \
-              --query 'data.id' --raw-output 2>&1)
-            echo "$OUT"
-            echo "::endgroup::"
-            if echo "$OUT" | grep -q "Out of host capacity"; then
-              continue
-            fi
-            if echo "$OUT" | grep -qE "^ocid1\.instance\."; then
-              CREATED="$OUT"
-              break
-            fi
-            # outro erro inesperado: registra e tenta shape menor
-            echo "::warning::erro inesperado neste shape (ver acima)"
+          CYCLE=0
+          while [ $(date +%s) -lt $DEADLINE ]; do
+            CYCLE=$((CYCLE+1))
+            echo "===== ciclo #$CYCLE ($(date -u +%H:%M:%S) UTC) ====="
+            for cfg in "4 24" "2 12" "1 6"; do
+              set -- $cfg; O=$1; M=$2
+              OUT=$(oci compute instance launch \
+                --availability-domain "$AD" \
+                --compartment-id "$OCI_CLI_TENANCY" \
+                --shape VM.Standard.A1.Flex \
+                --shape-config "{\"ocpus\":$O,\"memoryInGBs\":$M}" \
+                --image-id "$IMG" \
+                --subnet-id "$SUBNET" \
+                --boot-volume-size-in-gbs 100 \
+                --display-name mailcow-ces \
+                --hostname-label mailcow-ces \
+                --assign-public-ip true \
+                --ssh-authorized-keys-file mailcow_ces.pub \
+                --query 'data.id' --raw-output 2>&1)
+              if echo "$OUT" | grep -q "Out of host capacity"; then
+                echo "  ${O}/${M}: out of capacity"
+                continue
+              fi
+              if echo "$OUT" | grep -qE "^ocid1\.instance\."; then
+                CREATED="$OUT"; echo "  ${O}/${M}: ✓ CRIADA $CREATED"; break
+              fi
+              echo "::warning::erro inesperado em ${O}/${M}:"; echo "$OUT"
+            done
+            [ -n "$CREATED" ] && break
+            sleep 30
           done
           if [ -z "$CREATED" ]; then
-            echo "Sem capacity neste ciclo — próxima execução do cron tentará de novo."
+            echo "Sem capacity nesta janela ($CYCLE ciclos). Job vai se redisparar."
             echo "done=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -103,3 +111,11 @@ jobs:
           gh issue create \
             --title "VM mailcow-ces criada — IP ${{ steps.launch.outputs.ip }}" \
             --body "A VM ARM nasceu em sa-saopaulo-1. IP publico: ${{ steps.launch.outputs.ip }}. Detalhes em VM_CREATED.json. Proximo passo: instalar Mailcow." || true
+
+      - name: Self-redispatch (cobertura contínua)
+        if: steps.launch.outputs.done == 'false' && steps.guard.outputs.done == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Redisparando para manter cobertura contínua..."
+          gh workflow run arm-retry.yml --ref main || echo "redispatch falhou (cron horário cobre)"
