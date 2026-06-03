@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>C&S Engenharia — Construção, Engenharia e Consultoria</title>
+<meta name="description" content="C&S Engenharia, Construção e Consultoria — gestão, projeto e execução de obras de médio e grande porte no Oeste Baiano. Onde a engenharia encontra confiança." />
+<meta name="theme-color" content="#14152E" />
+<meta property="og:title" content="C&S Engenharia — Construção, Engenharia e Consultoria" />
+<meta property="og:description" content="Gestão, projeto e execução de obras de médio e grande porte no Oeste Baiano." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314152E'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23fff' stroke-width='2.6'/%3E%3Cpath d='M34 20a12 12 0 100 24' fill='none' stroke='%2379CFC8' stroke-width='2.6'/%3E%3Cpath d='M39 26c-3-2.6-11-2-11 2c0 5 11 3 11 8c0 4-8 5-12 1.5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --navy:#13142B; --navy-2:#191A3E; --navy-3:#222451; --navy-line:#2C2E5C;
+    --peri:#8B92C8; --peri-bright:#AEB4E4; --teal:#79CFC8; --teal-deep:#52B8AF;
+    --cream:#F3F4FB; --muted:#A6ABCB; --muted-dim:#787DA0;
+    --shadow:0 30px 80px -30px rgba(0,0,0,.65);
+    --r:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--cream);background:var(--navy);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .serif{font-family:'Cormorant Garamond',Georgia,serif}
+  h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;line-height:1.12;letter-spacing:.005em}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(1180px,92vw);margin-inline:auto}
+  .kicker{font-family:'Poppins';font-weight:600;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--teal)}
+  .btn{display:inline-flex;align-items:center;gap:.55rem;font-family:'Poppins';font-weight:500;font-size:.86rem;letter-spacing:.02em;padding:.78rem 1.5rem;border-radius:999px;border:1.4px solid transparent;cursor:pointer;transition:.25s ease;white-space:nowrap}
+  .btn-primary{background:var(--peri);color:#14152E}
+  .btn-primary:hover{background:var(--peri-bright);transform:translateY(-2px)}
+  .btn-teal{background:var(--teal);color:#0d2422}
+  .btn-teal:hover{background:#92ddd6;transform:translateY(-2px)}
+  .btn-line{border-color:rgba(255,255,255,.28);color:var(--cream)}
+  .btn-line:hover{border-color:var(--teal);color:var(--teal);transform:translateY(-2px)}
+  .btn-ghostdark{border-color:var(--navy-line);color:var(--cream);background:rgba(255,255,255,.03)}
+  .btn-ghostdark:hover{border-color:var(--peri);color:var(--peri-bright)}
+
+  /* LOGO */
+  .logo{display:flex;align-items:center;gap:.7rem}
+  .logo .mono{flex:0 0 auto}
+  .logo .txt{font-family:'Poppins';font-weight:600;font-size:1.05rem;letter-spacing:.04em;color:#fff}
+  .logo .txt b{color:var(--peri-bright);font-weight:600}
+
+  /* HEADER */
+  header{position:fixed;top:0;left:0;right:0;z-index:60;transition:.35s ease;border-bottom:1px solid transparent}
+  header.scrolled{background:rgba(16,17,40,.86);backdrop-filter:blur(16px);border-bottom-color:var(--navy-line)}
+  .nav{display:flex;align-items:center;gap:1.4rem;padding:1.15rem 0;transition:.35s}
+  header.scrolled .nav{padding:.8rem 0}
+  .navlinks{display:flex;gap:1.9rem;margin-left:auto;font-family:'Poppins';font-weight:500;font-size:.84rem;letter-spacing:.03em;color:var(--muted)}
+  .navlinks a{position:relative;padding:.2rem 0;transition:.2s}
+  .navlinks a:hover{color:#fff}
+  .navlinks a::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:1.5px;background:var(--teal);transition:.25s}
+  .navlinks a:hover::after{width:100%}
+  .navcta{display:flex;gap:.6rem;align-items:center}
+  .menu-btn{display:none;margin-left:auto;background:none;border:0;cursor:pointer;padding:.4rem}
+  .menu-btn span{display:block;width:24px;height:2px;background:#fff;margin:5.5px 0;border-radius:2px;transition:.2s}
+
+  /* HERO */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;z-index:0}
+  .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 40%}
+  .hero-bg::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,rgba(15,16,38,.96) 0%,rgba(15,16,38,.86) 40%,rgba(15,16,38,.55) 75%,rgba(15,16,38,.7) 100%),
+               linear-gradient(180deg,rgba(15,16,38,.6) 0%,transparent 30%,rgba(15,16,38,.4) 80%,rgba(15,16,38,.95) 100%)}
+  .hero .wrap{position:relative;z-index:2;padding-top:8rem;padding-bottom:5rem}
+  .hero .eye{display:inline-flex;align-items:center;gap:.6rem;margin-bottom:1.6rem}
+  .hero .eye .ln{width:34px;height:1.5px;background:var(--teal)}
+  .hero h1{font-size:clamp(2.6rem,6vw,5.2rem);font-weight:500;max-width:16ch;color:#fff}
+  .hero h1 em{font-style:italic;color:var(--peri-bright)}
+  .hero h1 .tl{font-style:italic;color:var(--teal)}
+  .hero .lead{margin:1.8rem 0 2.4rem;font-size:1.12rem;color:var(--muted);max-width:40ch;line-height:1.8}
+  .hero-cta{display:flex;gap:.9rem;flex-wrap:wrap}
+  .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:2;font-family:'Poppins';font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-dim);display:flex;flex-direction:column;align-items:center;gap:.5rem}
+  .scroll-hint .line{width:1px;height:38px;background:linear-gradient(var(--teal),transparent);animation:drop 2s infinite}
+  @keyframes drop{0%{opacity:0;transform:scaleY(.3);transform-origin:top}50%{opacity:1}100%{opacity:0;transform:scaleY(1);transform-origin:top}}
+
+  /* TRUST STRIP */
+  .strip{border-top:1px solid var(--navy-line);border-bottom:1px solid var(--navy-line);background:var(--navy-2)}
+  .strip .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:1px}
+  .strip .it{padding:2rem 1.4rem;text-align:center}
+  .strip .it b{font-family:'Cormorant Garamond';font-size:2.4rem;font-weight:600;color:var(--peri-bright);display:block;line-height:1}
+  .strip .it span{font-family:'Poppins';font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:.6rem;display:block}
+
+  section{padding:7rem 0;position:relative}
+  .sec-head{max-width:46rem;margin-bottom:3.5rem}
+  .sec-head h2{font-size:clamp(2rem,4vw,3.1rem);font-weight:500;margin-top:1rem;color:#fff}
+  .sec-head h2 em{font-style:italic;color:var(--peri-bright)}
+  .sec-head p{margin-top:1.2rem;color:var(--muted);font-size:1.08rem;max-width:42rem}
+
+  /* SOBRE */
+  .about{display:grid;grid-template-columns:1.05fr .95fr;gap:4rem;align-items:center}
+  .about-visual{position:relative;border-radius:22px;overflow:hidden;min-height:460px;box-shadow:var(--shadow);border:1px solid var(--navy-line)}
+  .about-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .about-visual::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(15,16,38,.85) 100%)}
+  .about-visual .tag{position:absolute;left:1.5rem;bottom:1.5rem;z-index:2}
+  .about-visual .tag b{font-family:'Cormorant Garamond';font-style:italic;font-size:1.5rem;color:#fff;display:block}
+  .about-visual .tag span{font-family:'Poppins';font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+  .about ul{list-style:none;margin-top:1.8rem;display:grid;gap:1.1rem}
+  .about li{display:flex;gap:.9rem;align-items:flex-start;color:var(--muted)}
+  .about li .ck{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:rgba(121,207,200,.14);display:grid;place-items:center;margin-top:2px}
+  .about li b{color:#fff;font-weight:600}
+
+  /* SERVIÇOS */
+  .soft{background:var(--navy-2)}
+  .grid{display:grid;gap:1.5rem}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--navy-3),var(--navy-2));border:1px solid var(--navy-line);border-radius:var(--r);padding:2rem;transition:.3s;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--peri),var(--teal));transform:scaleX(0);transform-origin:left;transition:.35s}
+  .card:hover{transform:translateY(-6px);border-color:transparent;box-shadow:var(--shadow)}
+  .card:hover::before{transform:scaleX(1)}
+  .card .ic{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;background:rgba(139,146,200,.13);margin-bottom:1.3rem;color:var(--peri-bright)}
+  .card:nth-child(3n+2) .ic{background:rgba(121,207,200,.13);color:var(--teal)}
+  .card h3{font-size:1.5rem;font-weight:600;margin-bottom:.5rem;color:#fff}
+  .card p{color:var(--muted);font-size:.97rem}
+
+  /* SHOWCASE BAND */
+  .band{position:relative;min-height:60vh;display:flex;align-items:center;overflow:hidden}
+  .band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%}
+  .band::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,16,38,.94),rgba(15,16,38,.55))}
+  .band .wrap{position:relative;z-index:2}
+  .band blockquote{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:clamp(1.8rem,3.6vw,3rem);max-width:20ch;color:#fff;line-height:1.25}
+  .band blockquote em{color:var(--teal);font-style:italic}
+  .band cite{display:block;margin-top:1.4rem;font-family:'Poppins';font-style:normal;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  /* ATUAÇÃO */
+  .pills{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:2rem}
+  .pill{background:rgba(255,255,255,.04);border:1px solid var(--navy-line);border-radius:999px;padding:.65rem 1.3rem;font-family:'Poppins';font-weight:500;font-size:.86rem;color:var(--muted);transition:.25s}
+  .pill:hover{border-color:var(--teal);color:var(--teal);transform:translateY(-2px)}
+
+  /* CONTATO */
+  .contact{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:start}
+  .cc{display:flex;gap:1rem;align-items:flex-start;padding:1.4rem 0;border-bottom:1px solid var(--navy-line)}
+  .cc:last-child{border-bottom:0}
+  .cc .ic{width:46px;height:46px;border-radius:12px;background:rgba(139,146,200,.12);display:grid;place-items:center;flex:0 0 auto;color:var(--peri-bright)}
+  .cc h4{font-family:'Poppins';font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.25rem;font-weight:600}
+  .cc a,.cc span{color:#fff;font-size:1.05rem;font-weight:500}
+  .contact-cta{background:linear-gradient(155deg,var(--navy-3),var(--navy-2));border:1px solid var(--navy-line);border-radius:20px;padding:2.4rem;position:relative;overflow:hidden}
+  .contact-cta h3{font-size:1.9rem;color:#fff;font-weight:600;position:relative;z-index:1}
+  .contact-cta h3 em{font-style:italic;color:var(--peri-bright)}
+  .contact-cta p{color:var(--muted);margin:.9rem 0 1.6rem;position:relative;z-index:1}
+  .contact-cta .wm{position:absolute;right:-30px;bottom:-30px;opacity:.06;z-index:0}
+
+  /* FOOTER */
+  footer{background:#0E0F26;border-top:1px solid var(--navy-line);padding:4rem 0 2rem}
+  .foot-top{display:flex;justify-content:space-between;gap:2.5rem;flex-wrap:wrap;padding-bottom:2.5rem;border-bottom:1px solid var(--navy-line)}
+  .foot-top p{color:var(--muted);max-width:26rem;margin-top:1.1rem;font-size:.95rem}
+  .foot-cta{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;height:fit-content}
+  .foot-bottom{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-top:1.6rem;font-size:.84rem;color:var(--muted-dim);font-family:'Poppins'}
+
+  /* TIPOLOGIAS */
+  .tipos{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+  .tipo{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--navy-line);min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;transition:.3s;background:linear-gradient(160deg,var(--navy-3),var(--navy-2))}
+  .tipo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  .tipo .ph{position:absolute;inset:0;display:grid;place-items:center;color:rgba(174,180,228,.14);z-index:0}
+  .tipo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,16,38,.05) 25%,rgba(15,16,38,.55) 60%,rgba(15,16,38,.95) 100%);z-index:1}
+  .tipo .body{position:relative;z-index:2;padding:1.6rem}
+  .tipo .body .ic{width:44px;height:44px;border-radius:12px;background:rgba(121,207,200,.16);display:grid;place-items:center;color:var(--teal);margin-bottom:.85rem}
+  .tipo h3{font-size:1.4rem;color:#fff;font-weight:600;line-height:1.14}
+  .tipo p{color:var(--muted);font-size:.92rem;margin-top:.4rem}
+  .tipo:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:transparent}
+
+  @media(max-width:900px){
+    .navlinks,.navcta{display:none}
+    .menu-btn{display:block}
+    header.open{background:rgba(16,17,40,.97);backdrop-filter:blur(16px)}
+    header.open .navlinks{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;padding:1.4rem 6vw;gap:1.2rem;border-bottom:1px solid var(--navy-line)}
+    header.open .navcta{display:flex;position:absolute;top:100%;left:0;right:0;padding:0 6vw 1.6rem;margin-top:170px}
+    .about,.contact{grid-template-columns:1fr;gap:2.5rem}
+    .grid-3,.tipos{grid-template-columns:1fr}
+    .strip .wrap{grid-template-columns:1fr 1fr}
+    .foot-top{flex-direction:column}
+    section{padding:5rem 0}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="hdr">
+  <div class="wrap nav">
+    <a class="logo" href="#top" aria-label="C&S Engenharia">
+      <svg class="mono" width="40" height="40" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="23.5" fill="none" stroke="#fff" stroke-width="2.6"/>
+        <path d="M34 18 A14 14 0 1 0 34 46" fill="none" stroke="#79CFC8" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M40 25c-3.5-3-12-2.5-12 2.5c0 6 12 3.5 12 9.5c0 5-9 6-13.5 1.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <span class="txt">C&amp;S <b>ENGENHARIA</b></span>
+    </a>
+    <nav class="navlinks">
+      <a href="#sobre">Sobre</a>
+      <a href="#servicos">Serviços</a>
+      <a href="#obras">Obras</a>
+      <a href="#atuacao">Atuação</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <div class="navcta">
+      <a class="btn btn-line" href="https://mail.ces.eng.br" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        Acessar E-mail
+      </a>
+      <a class="btn btn-primary" href="https://plat.innovasphere.ia.br" target="_blank" rel="noopener">Área Restrita</a>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <div class="hero-bg"><img src="assets/hero-obra.jpg" alt="Obra em execução pela C&S Engenharia" /></div>
+  <div class="wrap">
+    <span class="eye"><span class="ln"></span><span class="kicker">Construção · Engenharia · Consultoria</span></span>
+    <h1>Onde a engenharia<br>encontra <em>confiança</em>.</h1>
+    <p class="lead">Gestão, projeto e execução de obras de médio e grande porte no Oeste Baiano — com rigor técnico, governança e compromisso absoluto com prazo, custo e segurança.</p>
+    <div class="hero-cta">
+      <a class="btn btn-teal" href="#contato">Fale com a C&amp;S</a>
+      <a class="btn btn-line" href="#servicos">Conheça nossos serviços</a>
+    </div>
+  </div>
+  <div class="scroll-hint"><span>Role</span><span class="line"></span></div>
+</div>
+
+<!-- TRUST STRIP -->
+<div class="strip">
+  <div class="wrap">
+    <div class="it"><b>M+G</b><span>Obras de médio<br>e grande porte</span></div>
+    <div class="it"><b>360°</b><span>Projeto · execução<br>· gestão</span></div>
+    <div class="it"><b>CREA</b><span>Responsabilidade<br>técnica certificada</span></div>
+    <div class="it"><b>NR</b><span>Segurança do<br>trabalho aplicada</span></div>
+  </div>
+</div>
+
+<!-- SOBRE -->
+<section id="sobre">
+  <div class="wrap about">
+    <div class="about-visual">
+      <img src="assets/hero-obra.jpg" alt="Estrutura em concreto armado em execução" />
+      <div class="tag"><b>Execução com técnica</b><span>Obra estrutural · C&amp;S Engenharia</span></div>
+    </div>
+    <div>
+      <span class="kicker">Quem somos</span>
+      <h2 style="font-size:clamp(2rem,3.6vw,2.9rem);margin-top:1rem;color:#fff;font-weight:500">Especialistas em obras que exigem <em style="font-style:italic;color:var(--peri-bright)">técnica e gestão</em></h2>
+      <p style="margin-top:1.2rem;color:var(--muted);font-size:1.06rem">A <b style="color:#fff">C&amp;S Engenharia, Construção e Consultoria</b> atua na gestão, no projeto e na execução de obras de médio e grande porte, integrando engenharia, administração de obras e consultoria em um único ciclo de responsabilidade técnica.</p>
+      <ul>
+        <li><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#79CFC8" stroke-width="3"><path d="m5 12 4 4L19 7"/></svg></span><span><b>Execução integral</b> — da fundação ao acabamento, com coordenação única de frentes e fornecedores.</span></li>
+        <li><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#79CFC8" stroke-width="3"><path d="m5 12 4 4L19 7"/></svg></span><span><b>Governança técnica</b> — responsabilidade de engenheiro civil registrado no CREA, com ART e controle documental.</span></li>
+        <li><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#79CFC8" stroke-width="3"><path d="m5 12 4 4L19 7"/></svg></span><span><b>Compliance e segurança</b> — programas de saúde e segurança do trabalho aplicados em todas as frentes.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SERVIÇOS -->
+<section id="servicos" class="soft">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">O que fazemos</span>
+      <h2>Soluções completas, do <em>estudo</em> à entrega</h2>
+      <p>Um portfólio integrado que cobre todo o ciclo da obra — com gestão técnica e administrativa em cada etapa.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 20h20M4 20V8l8-5 8 5v12M9 20v-6h6v6"/></svg></div><h3>Engenharia & Projetos</h3><p>Estudos, concepção e detalhamento técnico de empreendimentos, com soluções otimizadas para prazo, custo e construtibilidade.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M10 12h4M10 16h4"/></svg></div><h3>Construção de Edifícios</h3><p>Execução de obras de médio e grande porte — fundações, estrutura, instalações e acabamentos com controle de qualidade contínuo.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h18M3 12h18M3 17h12"/><circle cx="19" cy="17" r="2"/></svg></div><h3>Administração de Obras</h3><p>Coordenação de frentes, suprimentos, cronograma físico-financeiro e medições — gestão integrada do canteiro à prestação de contas.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8"/></svg></div><h3>Consultoria Técnica</h3><p>Assessoria especializada em viabilidade, diagnóstico de obras e suporte à decisão para investidores e clientes.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>Segurança do Trabalho</h3><p>Treinamento técnico e implantação de programas de saúde e segurança (NRs), com cultura de prevenção em todas as equipes.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 5-6"/></svg></div><h3>Gestão de Empreendimentos</h3><p>Planejamento, controle de avanço e governança de empreendimentos, com indicadores e rastreabilidade ponta a ponta.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE BAND -->
+<div class="band">
+  <img src="assets/hero-obra.jpg" alt="Canteiro de obras C&S Engenharia" />
+  <div class="wrap">
+    <blockquote>Cada obra conduzida dentro da <em>lei</em>, da <em>técnica</em> e do <em>prazo</em>.</blockquote>
+    <cite>— Compromisso C&amp;S Engenharia</cite>
+  </div>
+</div>
+
+<!-- TIPOLOGIAS / O QUE CONSTRUÍMOS -->
+<section id="obras" class="soft">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">O que construímos</span>
+      <h2>Tipologias que <em>dominamos</em></h2>
+      <p>De residências de alto padrão a grandes estruturas em áreas abertas — projetos de média e grande metragem, em lotes a partir de 5.000 m².</p>
+    </div>
+    <div class="tipos">
+      <div class="tipo">
+        <img src="assets/casa-alto-padrao.jpg" alt="Casa de alto padrão — arquitetura residencial contemporânea" loading="lazy" />
+        <div class="body"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7M5 10v10h14V10M9 20v-6h6v6"/></svg></div><h3>Casas de Alto Padrão</h3><p>Residências exclusivas, com acabamento refinado e gestão de obra de excelência.</p></div>
+      </div>
+      <div class="tipo">
+        <div class="ph"><svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 21V8l9-4 9 4v13M3 21h18M7 21v-7h4v7M14 12h3v4h-3z"/></svg></div>
+        <div class="body"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V8l9-4 9 4v13M3 21h18M7 21v-7h4v7"/></svg></div><h3>Galpões & Estruturas Rurais</h3><p>Grandes galpões e estruturas em fazendas, com vão livre e logística de campo.</p></div>
+      </div>
+      <div class="tipo">
+        <div class="ph"><svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 20h18M6 20v-6M10 20v-9M14 20v-9M18 20v-6M4 14h6M14 11h6"/><circle cx="12" cy="5" r="2"/></svg></div>
+        <div class="body"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20h18M6 20v-6M10 20v-9M14 20v-9M18 20v-6"/></svg></div><h3>Praças & Áreas Abertas</h3><p>Urbanização, praças e obras em áreas abertas, com paisagismo e infraestrutura.</p></div>
+      </div>
+      <div class="tipo">
+        <div class="ph"><svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M22 10L12 5 2 10l10 5 10-5zM6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg></div>
+        <div class="body"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 10L12 5 2 10l10 5 10-5zM6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg></div><h3>Escolas & Equipamentos Públicos</h3><p>Edificações institucionais e equipamentos públicos com rigor normativo.</p></div>
+      </div>
+      <div class="tipo">
+        <div class="ph"><svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h3M13 7h3M8 11h3M13 11h3M8 15h3M13 15h3"/></svg></div>
+        <div class="body"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h3M13 8h3M8 13h3M13 13h3"/></svg></div><h3>Sedes Corporativas</h3><p>Sedes de até 3 pavimentos e grandes metragens — projeto, execução e gestão.</p></div>
+      </div>
+      <div class="tipo">
+        <div class="ph"><svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3h18v18H3zM3 9h18M9 3v18"/></svg></div>
+        <div class="body"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3zM3 9h18M9 3v18"/></svg></div><h3>Lotes a partir de 5.000 m²</h3><p>Empreendimentos de grande implantação, do estudo do terreno à entrega.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ATUAÇÃO -->
+<section id="atuacao">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Onde atuamos</span>
+      <h2>Atuação em toda a <em>Bahia</em> e no <em>Nordeste</em></h2>
+      <p>Da capital ao interior, a C&amp;S executa obras nas principais praças de expansão da região — com forte presença nos polos do agronegócio e nas frentes de maior crescimento do Nordeste.</p>
+    </div>
+    <div class="pills">
+      <span class="pill">Obras corporativas</span>
+      <span class="pill">Infraestrutura</span>
+      <span class="pill">Edificações</span>
+      <span class="pill">Agronegócio</span>
+      <span class="pill">Incorporação</span>
+      <span class="pill">Reformas técnicas</span>
+      <span class="pill">Gestão de canteiro</span>
+      <span class="pill">Consultoria de viabilidade</span>
+    </div>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section id="contato" class="soft">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Fale com a gente</span>
+      <h2>Vamos construir o seu <em>próximo projeto</em></h2>
+      <p>Entre em contato para orçamentos, propostas técnicas e parcerias. Nossa equipe responde com agilidade.</p>
+    </div>
+    <div class="contact">
+      <div>
+        <div class="cc"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div><div><h4>Telefone / WhatsApp</h4><a href="https://wa.me/5577999430230" target="_blank" rel="noopener">(77) 9 9943-0230</a></div></div>
+        <div class="cc"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div><div><h4>E-mail</h4><a href="mailto:contato@ces.eng.br">contato@ces.eng.br</a></div></div>
+        <div class="cc"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><h4>Atuação</h4><span style="font-weight:500;font-size:1.02rem">Bahia e todo o Nordeste</span></div></div>
+        <div class="cc"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg></div><div><h4>Instagram</h4><a href="https://instagram.com/oficialcseng" target="_blank" rel="noopener">@oficialcseng</a></div></div>
+      </div>
+      <div class="contact-cta">
+        <svg class="wm" width="220" height="220" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="none" stroke="#fff" stroke-width="2"/><path d="M42 22a13 13 0 100 20" fill="none" stroke="#fff" stroke-width="2"/></svg>
+        <span class="kicker">Acesso rápido</span>
+        <h3 style="margin-top:.8rem">Já é cliente ou <em>parceiro?</em></h3>
+        <p>Acesse seu e-mail corporativo ou a área restrita de gestão de obras.</p>
+        <div style="display:flex;gap:.7rem;flex-wrap:wrap;position:relative;z-index:1">
+          <a class="btn btn-teal" href="https://mail.ces.eng.br" target="_blank" rel="noopener">Acessar E-mail</a>
+          <a class="btn btn-primary" href="https://plat.innovasphere.ia.br" target="_blank" rel="noopener">Área Restrita</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <a class="logo" href="#top">
+          <svg class="mono" width="38" height="38" viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="32" r="24" fill="none" stroke="#fff" stroke-width="2.6"/>
+            <path d="M42 22a13 13 0 100 20" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M26 24a9 9 0 11-2 16" fill="none" stroke="#79CFC8" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+          <span class="txt">C&amp;S <b>ENGENHARIA</b></span>
+        </a>
+        <p>Construção, engenharia e consultoria de obras de médio e grande porte no Oeste Baiano. Técnica, governança e confiança em cada etapa.</p>
+      </div>
+      <div class="foot-cta">
+        <a class="btn btn-line" href="https://mail.ces.eng.br" target="_blank" rel="noopener">Acessar E-mail</a>
+        <a class="btn btn-teal" href="https://plat.innovasphere.ia.br" target="_blank" rel="noopener">Área Restrita</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>C&amp;S Engenharia, Construção e Consultoria Ltda. · CNPJ 42.130.891/0001-40 · Bahia · Nordeste</span>
+      <span>© 2026 C&amp;S Engenharia. Todos os direitos reservados.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const hdr=document.getElementById('hdr'), mb=document.getElementById('menuBtn');
+  const onScroll=()=>hdr.classList.toggle('scrolled',window.scrollY>40);
+  onScroll(); window.addEventListener('scroll',onScroll,{passive:true});
+  mb&&mb.addEventListener('click',()=>hdr.classList.toggle('open'));
+  document.querySelectorAll('.navlinks a').forEach(a=>a.addEventListener('click',()=>hdr.classList.remove('open')));
+</script>
+</body>
+</html>

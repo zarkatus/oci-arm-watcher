@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Webmail · C&S Engenharia</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314152E'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23fff' stroke-width='2.6'/%3E%3Cpath d='M34 20a12 12 0 100 24' fill='none' stroke='%2379CFC8' stroke-width='2.6'/%3E%3Cpath d='M39 26c-3-2.6-11-2-11 2c0 5 11 3 11 8c0 4-8 5-12 1.5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{--navy:#13142B;--peri:#8B92C8;--peri-bright:#AEB4E4;--teal:#79CFC8;--cream:#F3F4FB;--muted:#AEB2CE;--line:rgba(255,255,255,.14)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:auto}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--cream);min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;overflow-x:hidden;overflow-y:auto;background:var(--navy);padding:24px 14px}
+  .bg{position:fixed;inset:0;z-index:0}
+  .bg img{width:100%;height:100%;object-fit:cover;object-position:center 40%}
+  .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(15,16,38,.94) 0%,rgba(15,16,38,.85) 50%,rgba(19,20,43,.75) 100%)}
+  .shell{position:relative;z-index:1;width:min(410px,94vw);margin:auto}
+  .card{background:rgba(22,24,52,.66);backdrop-filter:blur(26px) saturate(140%);border:1px solid var(--line);border-radius:20px;padding:1.6rem 1.5rem;box-shadow:0 30px 70px -28px rgba(0,0,0,.8)}
+
+  .brand{display:flex;align-items:center;gap:.6rem;justify-content:center;margin-bottom:.9rem}
+  .brand .name{font-family:'Poppins';font-weight:600;font-size:.92rem;letter-spacing:.05em;color:#fff}
+  .brand .name b{color:var(--peri-bright)}
+  .brand .sub{font-family:'Poppins';font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+
+  h1{font-family:'Cormorant Garamond';font-weight:600;font-size:1.5rem;line-height:1.1;text-align:center;color:#fff;margin-bottom:.15rem}
+  h1 em{font-style:italic;color:var(--peri-bright)}
+  .hint{text-align:center;color:var(--muted);font-size:.84rem;margin-bottom:1rem}
+
+  /* PRINCIPAL: Google grande e óbvio */
+  .primary{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;padding:1rem;border:0;border-radius:13px;background:#fff;color:#1f2333;font-family:'Poppins';font-weight:600;font-size:1.02rem;cursor:pointer;transition:.2s;box-shadow:0 12px 26px -12px rgba(0,0,0,.55)}
+  .primary:hover{background:#f1f2f8;transform:translateY(-2px)}
+
+  .sep{display:flex;align-items:center;gap:.7rem;margin:.85rem 0;color:#7e83a6;font-family:'Poppins';font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
+  .sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .field{position:relative;margin-bottom:.6rem}
+  .field .fic{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.55}
+  input[type=email],input[type=password]{width:100%;padding:.8rem .9rem .8rem 2.6rem;border:1.4px solid var(--line);border-radius:12px;font-size:.95rem;font-family:inherit;color:#fff;background:rgba(255,255,255,.05);transition:.2s}
+  input::placeholder{color:#7e83a6}
+  input:focus{outline:none;border-color:var(--peri);background:rgba(255,255,255,.09);box-shadow:0 0 0 4px rgba(139,146,200,.16)}
+  .btn{width:100%;padding:.85rem;border:0;border-radius:12px;background:var(--peri);color:#14152E;font-family:'Poppins';font-weight:600;font-size:.92rem;cursor:pointer;transition:.22s;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.2rem}
+  .btn:hover{background:var(--peri-bright);transform:translateY(-2px)}
+  .row{display:flex;justify-content:space-between;align-items:center;margin:.55rem 0 .2rem;font-size:.8rem}
+  .row .chk{display:flex;align-items:center;gap:.4rem;color:var(--muted);cursor:pointer}
+  .row .chk input{accent-color:var(--teal)}
+  .row a{color:var(--peri-bright);font-weight:500}
+
+  /* outras formas: compactas, em linha */
+  .more{display:flex;gap:.45rem;margin-top:.9rem}
+  .more button{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.6rem .3rem;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);font-family:'Poppins';font-size:.62rem;font-weight:500;cursor:pointer;transition:.2s}
+  .more button:hover{color:#fff;border-color:var(--teal);transform:translateY(-2px)}
+  .more button svg{opacity:.9}
+
+  .notice{margin-top:.8rem;padding:.65rem .85rem;border-radius:10px;background:rgba(174,180,228,.1);border:1px solid var(--line);color:var(--cream);font-size:.8rem;text-align:center;display:none}
+  .notice a{color:var(--teal);font-weight:600}
+  .foot{display:flex;justify-content:center;gap:1rem;margin-top:1rem;font-family:'Poppins';font-size:.74rem;color:var(--muted)}
+  .foot a{color:var(--peri-bright);font-weight:500}
+  .foot a:hover{color:#fff}
+  .tls{text-align:center;margin-top:.7rem;font-family:'Poppins';font-size:.66rem;color:var(--teal);opacity:.85}
+</style>
+</head>
+<body>
+  <div class="bg"><img src="../assets/hero-obra.jpg" alt="" aria-hidden="true" /></div>
+
+  <div class="shell">
+    <div class="card">
+      <div class="brand">
+        <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="23.5" fill="none" stroke="#fff" stroke-width="2.8"/>
+          <path d="M34 18 A14 14 0 1 0 34 46" fill="none" stroke="#79CFC8" stroke-width="2.8" stroke-linecap="round"/>
+          <path d="M40 25c-3.5-3-12-2.5-12 2.5c0 6 12 3.5 12 9.5c0 5-9 6-13.5 1.5" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/>
+        </svg>
+        <div style="text-align:left">
+          <div class="name">C&amp;S <b>ENGENHARIA</b></div>
+          <div class="sub">Webmail</div>
+        </div>
+      </div>
+
+      <h1>Entrar no seu <em>e-mail</em></h1>
+      <p class="hint">A forma mais fácil: com sua conta Google.</p>
+
+      <!-- AÇÃO PRINCIPAL — grande, no topo -->
+      <button class="primary" type="button" data-m="Google">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0012 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 010-4.2V7.06H2.18a11 11 0 000 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 002.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+        Continuar com Google
+      </button>
+
+      <div class="sep">ou com e-mail e senha</div>
+
+      <form id="loginForm" method="post" action="#">
+        <div class="field">
+          <span class="fic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B92C8" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+          <input id="email" name="email" type="email" placeholder="seunome@ces.eng.br" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <span class="fic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B92C8" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+          <input id="senha" name="senha" type="password" placeholder="sua senha" autocomplete="current-password" required>
+        </div>
+        <div class="row">
+          <label class="chk"><input type="checkbox" name="lembrar" checked> Continuar conectado</label>
+          <a href="mailto:contato@ces.eng.br?subject=Recuperar%20senha">Esqueci a senha</a>
+        </div>
+        <button class="btn" type="submit">Entrar
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+
+      <div class="more">
+        <button type="button" data-m="Face ID / Touch ID"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M9 15a4 4 0 0 0 6 0"/></svg>Face / Touch ID</button>
+        <button type="button" data-m="WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M.06 24l1.69-6.16a11.87 11.87 0 01-1.6-5.95C.15 5.32 5.5 0 12.06 0a11.8 11.8 0 018.4 3.49 11.8 11.8 0 013.48 8.41c0 6.55-5.34 11.89-11.9 11.89a11.9 11.9 0 01-5.68-1.45L.06 24zM6.6 20.13l.36.22a9.87 9.87 0 005.1 1.4c5.45 0 9.9-4.43 9.9-9.88a9.82 9.82 0 00-2.9-7A9.82 9.82 0 0012.06 2c-5.46 0-9.9 4.43-9.9 9.89a9.86 9.86 0 001.51 5.26l.24.38-1 3.65 3.69-.95zM17.5 14.3c-.07-.12-.26-.2-.55-.34-.29-.15-1.7-.84-1.96-.94-.26-.1-.46-.14-.65.15-.19.29-.74.93-.9 1.12-.17.2-.34.22-.63.08a8 8 0 01-2.35-1.45 8.8 8.8 0 01-1.62-2.02c-.17-.3 0-.45.13-.6.13-.13.29-.34.43-.5.15-.18.2-.3.3-.5.1-.19.05-.36-.02-.5-.07-.15-.65-1.57-.9-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.4 0 1.4 1.02 2.76 1.16 2.95.15.2 2 3.05 4.85 4.28.68.29 1.2.46 1.62.6.68.21 1.3.18 1.78.11.55-.08 1.7-.69 1.93-1.36.24-.67.24-1.24.17-1.36z"/></svg>WhatsApp</button>
+        <button type="button" data-m="Código de acesso"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h2M11 10h2M15 10h2M7 14h6"/></svg>Código</button>
+        <button type="button" data-m="QR Code"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/></svg>QR Code</button>
+      </div>
+
+      <div class="notice" id="notice"></div>
+      <div class="tls">🔒 Conexão segura</div>
+    </div>
+
+    <div class="foot">
+      <a href="/">← Voltar ao site</a>
+      <a href="https://plat.innovasphere.ia.br">Área Restrita</a>
+    </div>
+  </div>
+
+  <script>
+    const notice=document.getElementById('notice');
+    function show(msg){ notice.innerHTML=msg; notice.style.display='block'; notice.scrollIntoView({behavior:'smooth',block:'center'}); }
+    document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{
+      show('Acesso via <b>'+b.dataset.m+'</b> — ativo assim que o webmail entrar no ar. Urgência: <a href="https://wa.me/5577999430230">WhatsApp (77) 9 9943-0230</a>.');
+    }));
+    document.getElementById('loginForm').addEventListener('submit',function(e){
+      e.preventDefault();
+      show('Webmail em configuração final — disponível em instantes. Urgência: <a href="https://wa.me/5577999430230">WhatsApp (77) 9 9943-0230</a>.');
+    });
+  </script>
+</body>
+</html>
