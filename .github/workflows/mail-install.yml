@@ -1,0 +1,44 @@
+name: mail-install
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - run: pip install oci-cli --quiet
+      - name: Rodar install-mail.sh na VM via run-command
+        run: |
+          set +e
+          TEN="$OCI_CLI_TENANCY"
+          INST="ocid1.instance.oc1.sa-saopaulo-1.antxeljrrbffr3qcp7tprdlj25zj4c3ec5bqq35qmndx7do477mteb6mmd5a"
+          cat > /tmp/cmd.sh <<'EOS'
+          #!/bin/bash
+          curl -fsSL https://raw.githubusercontent.com/zarkatus/oci-arm-watcher/main/install-mail.sh -o /tmp/im.sh
+          bash /tmp/im.sh
+          EOS
+          CONTENT=$(python3 -c "import json;print(json.dumps({'source':{'sourceType':'TEXT','text':open('/tmp/cmd.sh').read()},'output':{'outputType':'TEXT'}}))")
+          CMD=$(oci instance-agent command create --compartment-id "$TEN" --timeout-in-seconds 1500 --target "{\"instanceId\":\"$INST\"}" --content "$CONTENT" --display-name ces-install-mail --query 'data.id' --raw-output 2>&1)
+          echo "CMD=$CMD"
+          if ! echo "$CMD" | grep -qE "^ocid1\.instanceagentcommand"; then echo "FALHA ao criar run-command (agent pode estar desabilitado):"; echo "$CMD"; exit 1; fi
+          echo "aguardando execução (até ~22min)..."
+          for i in $(seq 1 80); do
+            LF=$(oci instance-agent command-execution get --instance-agent-command-id "$CMD" --instance-id "$INST" --query 'data."lifecycle-state"' --raw-output 2>/dev/null)
+            echo "[$i] lifecycle=$LF"
+            if [ "$LF" = "SUCCEEDED" ] || [ "$LF" = "FAILED" ]; then
+              echo "===== OUTPUT DA VM ====="
+              oci instance-agent command-execution get --instance-agent-command-id "$CMD" --instance-id "$INST" --query 'data.content.output.text' --raw-output 2>/dev/null
+              echo "===== exit-code ====="
+              oci instance-agent command-execution get --instance-agent-command-id "$CMD" --instance-id "$INST" --query 'data.content."exit-code"' --raw-output 2>/dev/null
+              break
+            fi
+            sleep 17
+          done
