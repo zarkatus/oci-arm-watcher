@@ -1,0 +1,28 @@
+name: mail-ip
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - run: pip install oci-cli --quiet
+      - name: IP da mail-ces
+        run: |
+          set +e
+          TEN="$OCI_CLI_TENANCY"
+          INST=$(oci compute instance list -c "$TEN" --all --query "data[?\"display-name\"=='mail-ces' && \"lifecycle-state\"=='RUNNING'].id | [0]" --raw-output 2>/dev/null)
+          echo "INSTANCE=$INST"
+          oci compute instance get --instance-id "$INST" --query 'data.{state:"lifecycle-state",shape:shape}' --output json 2>/dev/null
+          IP=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0]."public-ip"' --raw-output 2>/dev/null)
+          PRIV=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0]."private-ip"' --raw-output 2>/dev/null)
+          echo "PUBLIC_IP=$IP"
+          echo "PRIVATE_IP=$PRIV"
