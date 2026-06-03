@@ -1,0 +1,31 @@
+name: mail-status
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - run: pip install oci-cli --quiet
+      - name: Listar comandos + ler saída do install
+        run: |
+          set +e
+          TEN="$OCI_CLI_TENANCY"
+          INST="ocid1.instance.oc1.sa-saopaulo-1.antxeljrrbffr3qcp7tprdlj25zj4c3ec5bqq35qmndx7do477mteb6mmd5a"
+          echo "===== help command-execution get ====="
+          oci instance-agent command-execution get --help 2>&1 | grep -iE "^\s+--" | head -20
+          echo "===== LISTA de comandos no instance ====="
+          oci instance-agent command-execution list --compartment-id "$TEN" --instance-id "$INST" --output table --query 'data[].{id:"instance-agent-command-id",state:"lifecycle-state",name:"display-name",time:"time-created"}' 2>&1 | head -30
+          echo "===== pegar saída do comando mais recente ====="
+          CMDID=$(oci instance-agent command-execution list --compartment-id "$TEN" --instance-id "$INST" --sort-by TIMECREATED --sort-order DESC --query 'data[0]."instance-agent-command-id"' --raw-output 2>/dev/null)
+          echo "CMDID=$CMDID"
+          echo "--- tentativa A: --instance-agent-command-id + --instance-id ---"
+          oci instance-agent command-execution get --instance-agent-command-id "$CMDID" --instance-id "$INST" --query 'data.content.output.text' --raw-output 2>&1 | tail -60
