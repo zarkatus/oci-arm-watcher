@@ -1,0 +1,22 @@
+name: mail-runcmd-help
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  h:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - run: pip install oci-cli --quiet
+      - name: help + version
+        run: |
+          oci --version
+          echo "=== FLAGS de instance-agent command create ==="
+          oci instance-agent command create --help 2>&1 | grep -iE "time-out|timeout|--target|--content|--display|--compartment|required" | head -40
