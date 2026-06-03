@@ -1,0 +1,92 @@
+name: mail-01-net
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  net:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - name: Install OCI CLI
+        run: pip install oci-cli --quiet
+
+      - name: Criar NSG + regras + anexar à VNIC da mail-ces-amd
+        run: |
+          set -e
+          TEN="$OCI_CLI_TENANCY"
+          VCN="ocid1.vcn.oc1.sa-saopaulo-1.amaaaaaarbffr3qafht472y3vqf2bnl6pvescg5sc4hb5hpwle52pigtsufq"
+          INST="ocid1.instance.oc1.sa-saopaulo-1.antxeljrrbffr3qcp7tprdlj25zj4c3ec5bqq35qmndx7do477mteb6mmd5a"
+
+          # NSG idempotente
+          NSG=$(oci network nsg list -c "$TEN" --vcn-id "$VCN" --query "data[?\"display-name\"=='mail-ces-nsg'].id | [0]" --raw-output 2>/dev/null)
+          if [ -z "$NSG" ] || [ "$NSG" = "null" ]; then
+            NSG=$(oci network nsg create -c "$TEN" --vcn-id "$VCN" --display-name mail-ces-nsg --query 'data.id' --raw-output)
+            echo "NSG criado: $NSG"
+            sleep 5
+          else
+            echo "NSG já existe: $NSG"
+          fi
+
+          # Regras de ingress TCP (porta a porta) de 0.0.0.0/0
+          add_rule () {
+            local PORT=$1
+            oci network nsg rules add --nsg-id "$NSG" --security-rules "[{\"direction\":\"INGRESS\",\"protocol\":\"6\",\"source\":\"0.0.0.0/0\",\"sourceType\":\"CIDR_BLOCK\",\"isStateless\":false,\"tcpOptions\":{\"destinationPortRange\":{\"min\":$PORT,\"max\":$PORT}}}]" >/dev/null 2>&1 && echo "  +porta $PORT" || echo "  (porta $PORT já existia ou erro)"
+          }
+          # limpa regras antigas pra ficar idempotente
+          EXIST=$(oci network nsg rules list --nsg-id "$NSG" --query 'data[].id' --raw-output 2>/dev/null | tr -d '[],"' | xargs)
+          if [ -n "$EXIST" ]; then
+            oci network nsg rules remove --nsg-id "$NSG" --security-rule-ids "[$(echo $EXIST | sed 's/ /","/g; s/^/"/; s/$/"/')]" >/dev/null 2>&1 || true
+          fi
+          for P in 22 25 80 110 143 443 465 587 993 995 4190; do add_rule $P; done
+
+          # Anexa NSG à VNIC do mail-ces-amd
+          VNIC=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0].id' --raw-output)
+          echo "VNIC: $VNIC"
+          CUR=$(oci network vnic get --vnic-id "$VNIC" --query 'data."nsg-ids"' --raw-output 2>/dev/null)
+          echo "NSGs atuais na VNIC: $CUR"
+          oci network vnic update --vnic-id "$VNIC" --nsg-ids "[\"$NSG\"]" --force >/dev/null
+          echo "NSG anexado à VNIC."
+          echo "=== regras finais do NSG ==="
+          oci network nsg rules list --nsg-id "$NSG" --query 'data[].{proto:protocol,port:"tcp-options".\"destination-port-range\".min}' --output table
+
+      - name: Testar OCI run-command (Oracle Cloud Agent) na VM
+        run: |
+          set +e
+          TEN="$OCI_CLI_TENANCY"
+          INST="ocid1.instance.oc1.sa-saopaulo-1.antxeljrrbffr3qcp7tprdlj25zj4c3ec5bqq35qmndx7do477mteb6mmd5a"
+          echo "=== tentando run-command ==="
+          CMD=$(oci instance-agent command create \
+            --compartment-id "$TEN" \
+            --execution-time-out-in-seconds 120 \
+            --target "{\"instanceId\":\"$INST\"}" \
+            --content "{\"source\":{\"sourceType\":\"TEXT\",\"text\":\"#!/bin/bash\\necho RUNCMD_OK; uname -a; free -m; echo swap:; swapon --show; docker --version 2>/dev/null || echo NO_DOCKER\"},\"output\":{\"outputType\":\"TEXT\"}}" \
+            --display-name ces-probe \
+            --query 'data.id' --raw-output 2>&1)
+          echo "create result: $CMD"
+          if ! echo "$CMD" | grep -qE "^ocid1\.instanceagentcommand"; then
+            echo "RUNCMD_AVAILABLE=false"
+            echo ">>> run-command NAO disponivel — usaremos fallback SSH via Cloud Shell"
+            exit 0
+          fi
+          echo "RUNCMD_AVAILABLE=true"
+          echo "aguardando execução..."
+          for i in $(seq 1 20); do
+            ST=$(oci instance-agent command-execution get --instance-agent-command-id "$CMD" --instance-id "$INST" --query 'data."lifecycle-state"' --raw-output 2>/dev/null)
+            echo "  state: $ST"
+            if [ "$ST" = "SUCCEEDED" ] || [ "$ST" = "FAILED" ]; then
+              echo "=== OUTPUT ==="
+              oci instance-agent command-execution get --instance-agent-command-id "$CMD" --instance-id "$INST" --query 'data.content.output.text' --raw-output 2>/dev/null
+              break
+            fi
+            sleep 8
+          done
