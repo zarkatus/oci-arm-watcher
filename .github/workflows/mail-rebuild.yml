@@ -1,0 +1,62 @@
+name: mail-rebuild
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - run: pip install oci-cli --quiet
+      - name: Recriar VM mail-ces com cloud-init
+        env:
+          CES_CLOUDINIT_B64: ${{ secrets.CES_CLOUDINIT_B64 }}
+          CES_DEPLOY_PUB: ${{ secrets.CES_DEPLOY_PUB }}
+        run: |
+          set +e
+          TEN="$OCI_CLI_TENANCY"
+          AD="PuxO:SA-SAOPAULO-1-AD-1"
+          SUBNET="ocid1.subnet.oc1.sa-saopaulo-1.aaaaaaaa7hfoqh5p5jd4en3z3wagq4b2msbbtf3pwkdg4fm5seuefkux7jxa"
+          IMG="ocid1.image.oc1.sa-saopaulo-1.aaaaaaaa2virbsrj3q6sabzgnucegdrgqspk5zaj7ijqfckhln5yssfke4da"
+          NSG="ocid1.networksecuritygroup.oc1.sa-saopaulo-1.aaaaaaaalpftvb54bpn76x5lsk576h2r2c64jbcc6gwkmkci5lgwvwqozftq"
+          OLD="ocid1.instance.oc1.sa-saopaulo-1.antxeljrrbffr3qcp7tprdlj25zj4c3ec5bqq35qmndx7do477mteb6mmd5a"
+
+          echo "$CES_CLOUDINIT_B64" | base64 -d > /tmp/cloudinit.sh
+          echo "$CES_DEPLOY_PUB" > /tmp/ces.pub
+          echo "cloud-init: $(wc -l < /tmp/cloudinit.sh) linhas | pub: $(wc -c < /tmp/ces.pub) bytes"
+
+          echo "=== terminando VM vazia antiga (libera slot AMD) ==="
+          oci compute instance terminate --instance-id "$OLD" --force --wait-for-state TERMINATED --max-wait-seconds 360 2>&1 | tail -2
+
+          echo "=== lançando mail-ces (E2.1.Micro + cloud-init + ssh + nsg) ==="
+          OUT=$(oci compute instance launch \
+            --availability-domain "$AD" --compartment-id "$TEN" \
+            --shape VM.Standard.E2.1.Micro \
+            --image-id "$IMG" --subnet-id "$SUBNET" \
+            --boot-volume-size-in-gbs 50 \
+            --display-name mail-ces --hostname-label mailces \
+            --assign-public-ip true \
+            --ssh-authorized-keys-file /tmp/ces.pub \
+            --user-data-file /tmp/cloudinit.sh \
+            --nsg-ids "[\"$NSG\"]" \
+            --query 'data.id' --raw-output 2>&1)
+          echo "launch -> $OUT"
+          INST=$(echo "$OUT" | grep -oE 'ocid1\.instance\.oc1\.sa-saopaulo-1\.[a-z0-9]+' | head -1)
+          [ -z "$INST" ] && { echo "FALHA launch"; exit 1; }
+          echo "INSTANCE=$INST"
+          oci compute instance get --instance-id "$INST" --wait-for-state RUNNING --max-wait-seconds 400 >/dev/null 2>&1
+          IP=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0]."public-ip"' --raw-output 2>/dev/null)
+          PRIV=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0]."private-ip"' --raw-output 2>/dev/null)
+          echo "============================================"
+          echo "NEW_INSTANCE=$INST"
+          echo "NEW_PUBLIC_IP=$IP"
+          echo "NEW_PRIVATE_IP=$PRIV"
+          echo "============================================"
+          echo "(cloud-init roda o install agora ~8-12min; verificar portas depois)"
