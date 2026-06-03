@@ -1,0 +1,61 @@
+name: amd-probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OCI CLI
+        run: pip install oci-cli --quiet
+      - name: Probe AMD E2.1.Micro availability (cria mail-ces-amd se houver capacity)
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_CLI_REGION: sa-saopaulo-1
+        run: |
+          set +e
+          AD="PuxO:SA-SAOPAULO-1-AD-1"
+          SUBNET="ocid1.subnet.oc1.sa-saopaulo-1.aaaaaaaa7hfoqh5p5jd4en3z3wagq4b2msbbtf3pwkdg4fm5seuefkux7jxa"
+          # imagem AMD x86_64 Ubuntu 22.04 — resolve dinamicamente
+          IMG=$(oci compute image list --compartment-id "$OCI_CLI_TENANCY" \
+            --operating-system "Canonical Ubuntu" --operating-system-version "22.04" \
+            --shape "VM.Standard.E2.1.Micro" \
+            --query 'data[0].id' --raw-output 2>/dev/null)
+          echo "Imagem AMD: $IMG"
+          echo "=== tentando VM.Standard.E2.1.Micro (1GB) ==="
+          OUT=$(oci compute instance launch \
+            --availability-domain "$AD" \
+            --compartment-id "$OCI_CLI_TENANCY" \
+            --shape VM.Standard.E2.1.Micro \
+            --image-id "$IMG" \
+            --subnet-id "$SUBNET" \
+            --boot-volume-size-in-gbs 50 \
+            --display-name mail-ces-amd \
+            --hostname-label mailcesamd \
+            --assign-public-ip true \
+            --ssh-authorized-keys-file mailcow_ces.pub \
+            --query 'data.id' --raw-output 2>&1)
+          echo "$OUT"
+          if echo "$OUT" | grep -q "Out of host capacity"; then
+            echo "RESULTADO=AMD_SEM_CAPACITY"
+            exit 0
+          fi
+          if echo "$OUT" | grep -qE "^ocid1\.instance\."; then
+            echo "RESULTADO=AMD_DISPONIVEL_VM_CRIADA"
+            oci compute instance get --instance-id "$OUT" --wait-for-state RUNNING --max-wait-seconds 300 >/dev/null 2>&1
+            IP=$(oci compute instance list-vnics --instance-id "$OUT" --query 'data[0]."public-ip"' --raw-output 2>/dev/null)
+            echo "INSTANCE=$OUT"
+            echo "PUBLIC_IP=$IP"
+            exit 0
+          fi
+          echo "RESULTADO=ERRO_INESPERADO"
+          exit 0
