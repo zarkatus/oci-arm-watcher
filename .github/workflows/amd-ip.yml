@@ -1,0 +1,35 @@
+name: amd-ip
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install OCI CLI
+        run: pip install oci-cli --quiet
+      - name: Get mail-ces-amd details
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_CLI_REGION: sa-saopaulo-1
+        run: |
+          set +e
+          INST=$(oci compute instance list -c "$OCI_CLI_TENANCY" --all \
+            --query 'data[?"display-name"==`mail-ces-amd`] | [0].id' --raw-output 2>/dev/null)
+          echo "INSTANCE=$INST"
+          STATE=$(oci compute instance get --instance-id "$INST" --query 'data."lifecycle-state"' --raw-output 2>/dev/null)
+          echo "STATE=$STATE"
+          SHAPE=$(oci compute instance get --instance-id "$INST" --query 'data.shape' --raw-output 2>/dev/null)
+          echo "SHAPE=$SHAPE"
+          IP=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0]."public-ip"' --raw-output 2>/dev/null)
+          PRIV=$(oci compute instance list-vnics --instance-id "$INST" --query 'data[0]."private-ip"' --raw-output 2>/dev/null)
+          echo "PUBLIC_IP=$IP"
+          echo "PRIVATE_IP=$PRIV"
