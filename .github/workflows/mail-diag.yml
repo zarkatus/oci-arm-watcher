@@ -1,0 +1,31 @@
+name: mail-diag
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: sa-saopaulo-1
+    steps:
+      - run: pip install oci-cli --quiet
+      - name: Diag plugin + estado do comando
+        run: |
+          set +e
+          TEN="$OCI_CLI_TENANCY"
+          INST="ocid1.instance.oc1.sa-saopaulo-1.antxeljrrbffr3qcp7tprdlj25zj4c3ec5bqq35qmndx7do477mteb6mmd5a"
+          CMDID="ocid1.instanceagentcommand.oc1.sa-saopaulo-1.amaaaaaarbffr3qaqgb5yg3meyyepvrt3mjtdmrx7hjs7rmfow2eapstuzza"
+          echo "===== AGENT PLUGINS CONFIG ====="
+          oci compute instance get --instance-id "$INST" --query 'data."agent-config"' --output json 2>&1
+          echo "===== ESTADO ATUAL DO COMANDO ====="
+          oci instance-agent command-execution get --instance-agent-command-id "$CMDID" --instance-id "$INST" --query 'data.{state:"lifecycle-state",delivery:"delivery-state",exit:"content"."exit-code"}' --output json 2>&1
+          echo "===== OUTPUT (se houver) ====="
+          oci instance-agent command-execution get --instance-agent-command-id "$CMDID" --instance-id "$INST" --query 'data.content.output.text' --raw-output 2>&1 | tail -50
+          echo "===== HABILITAR Run Command plugin ====="
+          oci compute instance update --instance-id "$INST" --agent-config '{"isMonitoringDisabled":false,"isManagementDisabled":false,"areAllPluginsDisabled":false,"pluginsConfig":[{"name":"Compute Instance Run Command","desiredState":"ENABLED"},{"name":"Compute Instance Monitoring","desiredState":"ENABLED"}]}' --force --query 'data."lifecycle-state"' --raw-output 2>&1 | tail -5
