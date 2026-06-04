@@ -63,9 +63,20 @@ mkdir -p $BASE/dms/docker-data/dms/config/rspamd/dkim
 mkdir -p $BASE/dms/docker-data/dms/{mail-data,mail-state,mail-logs}
 mkdir -p $BASE/snappymail $BASE/caddy/data $BASE/caddy/config
 
-# 6) DKIM pré-gerado no rspamd (seletor "mail")
+# 6) DKIM pré-gerado no rspamd (seletor "mail") — 644 p/ o rspamd ler dentro do container
 cp "$SEC/dkim.private" $BASE/dms/docker-data/dms/config/rspamd/dkim/${DOMAIN}.mail.key
-chmod 600 $BASE/dms/docker-data/dms/config/rspamd/dkim/${DOMAIN}.mail.key
+chmod 644 $BASE/dms/docker-data/dms/config/rspamd/dkim/${DOMAIN}.mail.key
+
+# 6b) Cert self-signed p/ TLS imediato (SSL_TYPE=self-signed do DMS NÃO gera sozinho — exige cert pronto)
+mkdir -p $BASE/dms/docker-data/dms/config/ssl
+if [ ! -f $BASE/dms/docker-data/dms/config/ssl/cert.pem ]; then
+  openssl req -x509 -newkey rsa:2048 -nodes -days 825 \
+    -keyout $BASE/dms/docker-data/dms/config/ssl/key.pem \
+    -out $BASE/dms/docker-data/dms/config/ssl/cert.pem \
+    -subj "/CN=${HOST}" -addext "subjectAltName=DNS:${HOST},DNS:${DOMAIN}" 2>/dev/null
+  chmod 600 $BASE/dms/docker-data/dms/config/ssl/key.pem
+  chmod 644 $BASE/dms/docker-data/dms/config/ssl/cert.pem
+fi
 cat > $BASE/dms/docker-data/dms/config/rspamd/override.d/dkim_signing.conf <<RSP
 enabled = true;
 sign_authenticated = true;
