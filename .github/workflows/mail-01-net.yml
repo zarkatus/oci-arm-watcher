@@ -57,7 +57,7 @@ jobs:
           oci network vnic update --vnic-id "$VNIC" --nsg-ids "[\"$NSG\"]" --force >/dev/null
           echo "NSG anexado à VNIC."
           echo "=== regras finais do NSG ==="
-          oci network nsg rules list --nsg-id "$NSG" --query 'data[].{proto:protocol,port:"tcp-options".\"destination-port-range\".min}' --output table
+          oci network nsg rules list --nsg-id "$NSG" --query 'data[].{proto:protocol,port:"tcp-options"."destination-port-range".min}' --output table
 
       - name: Testar OCI run-command (Oracle Cloud Agent) na VM
         run: |
